@@ -14,7 +14,7 @@ const createOrder = async ({ requesterId, accepterId, orderState, items, fee }) 
     const db = getDb();
     const newOrder = new Order(requesterId, accepterId, orderState, items, fee);
     const result = await db.collection('orders').insertOne(newOrder);
-    return { message: 'Order created', order: { ...newOrder, _id: result.insertedId } };
+    return {order: { ...newOrder, _id: result.insertedId } };
 };
 
 // 거래 삭제
@@ -24,7 +24,7 @@ const deleteOrder = async (orderId) => {
     if (result.deletedCount === 0) {
         throw new Error(`Order with id ${orderId} not found`);
     }
-    return { message: `Order ${orderId} deleted` };
+    return `Order ${orderId}가 삭제됐습니다.`;
 };
 
 // 거래 상태 업데이트
@@ -37,7 +37,7 @@ const updateOrderStatus = async (orderId, { orderState }) => {
     if (result.matchedCount === 0) {
         throw new Error(`Order with id ${orderId} not found`);
     }
-    return { message: `Order ${orderId} updated to state ${orderState}` };
+    return `Order ${orderId}가 ${orderState} 상태로 업데이트됐습니다.`;
 };
 
 // 거래 수정
@@ -48,9 +48,9 @@ const updateOrder = async (orderId, updateData) => {
         { $set: updateData }
     );
     if (result.matchedCount === 0) {
-        throw new Error(`Order with id ${orderId} not found`);
+        throw new Error(`Order ${orderId}를 찾을 수 없습니다.`);
     }
-    return { message: `Order ${orderId} updated`, data: updateData };
+    return "수정이 완료됐습니다.";
 };
 
 module.exports = {

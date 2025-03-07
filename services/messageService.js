@@ -9,12 +9,12 @@ const createMessage = async ({ chatId, senderId, content }) => {
     // 채팅방이 존재하는지 확인
     const chat = await db.collection('chats').findOne({ _id: new ObjectId(chatId) });
     if (!chat) {
-        throw new Error(`The chat with ID ${chatId} could not be found.`);
+        throw new Error(`${chatId} 채팅방을 찾을 수 없습니다.`);
     }
 
     // 채팅방에 참여하고 있는 사용자 여부 확인
     if (chat.requesterId !== senderId && chat.accepterId !== senderId) {
-        throw new Error(`Sender is not a participant in this chat.`);
+        throw new Error(`채팅 메시지를 보낸 사람이 현재 채팅방에 속해있지 않습니다.`);
     }
 
     const newMessage = {
@@ -42,7 +42,7 @@ const getMessagesByChat = async (chatId) => {
     // 채팅방 존재 여부 확인
     const chat = await db.collection('chats').findOne({ _id: new ObjectId(chatId) });
     if (!chat) {
-        throw new Error(`The chat with ID ${chatId} could not be found.`);
+        throw new Error(`${chatId} 채팅방을 찾을 수 없습니다.`);
     }
 
     const messages = await db.collection('messages')
@@ -62,10 +62,10 @@ const markMessageAsRead = async (messageId) => {
     );
 
     if (result.matchedCount === 0) {
-        throw new Error(`The message with ID ${messageId} could not be found`);
+        throw new Error(`${messageId} 메시지를 찾을 수 없습니다.`);
     }
 
-    return `Message ${messageId} marked as read`;
+    return `Message ${messageId}가 읽음으로 표시됐습니다.`;
 };
 
 module.exports = {

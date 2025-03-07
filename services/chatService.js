@@ -4,7 +4,7 @@ const { getDb } = require('../db');
 const createChat = async ({ requesterId, accepterId }) => {
     const db = getDb();
 
-    // 중복 채팅 존재 여부 확인
+    // 중복 채팅방 존재 여부 확인
     const existingChat = await db.collection('chats').findOne({
         $or: [
             { requesterId: requesterId, accepterId: accepterId },
