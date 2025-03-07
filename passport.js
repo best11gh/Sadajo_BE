@@ -13,13 +13,13 @@ passport.use(new LocalStrategy(
             const db = getDb();
             const result = await findUserByEmail(userEmail);
             if (!result) {
-                return done(null, false, { message: 'Incorrect email.' });
+                return done(null, false, { message: '존재하지 않는 이메일입니다.' });
             }
             const isMatch = await bcrypt.compare(password, result.password);
             if (isMatch) {
                 return done(null, result);
             } else {
-                return done(null, false, { message: 'Incorrect password.' });
+                return done(null, false, { message: '비밀번호가 일치하지 않습니다.' });
             }
         } catch (err) {
             return done(err);

@@ -14,7 +14,7 @@ const findUserByEmail = async (email) => {
 const registerUser = async ({ userName, userEmail, password }) => {
     // 1. 이메일 중복 체크
     if (await findUserByEmail(userEmail)) {
-        throw new Error('Email is already registered.');
+        throw new Error('이미 존재하는 이메일입니다.');
     }
     // 2. 비밀번호 암호화
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -35,7 +35,7 @@ const deleteUser = async (userId) => {
     const db = getDb();
     const user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
     if (!user) {
-        throw new Error('User not found');
+        throw new Error('존재하지 않는 회원입니다.');
     }
     await db.collection('users').deleteOne({ _id: new ObjectId(userId) });
 };

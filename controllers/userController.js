@@ -12,47 +12,40 @@ const login = async (req, res, next) => {
     try {
         const { userEmail, password } = req.body;
 
-        // 1. 데이터 검증
         if (!userEmail || !password) {
-            return res.status(400).json({ message: 'userEmail and password are required.' });
+            return res.json(
+                new BaseResponse(status = "fail", code = 400, message = "이메일이나 비밀번호가 입력되지 않았습니다.")
+            )
         }
 
         passport.authenticate('local', (err, user, info) => {
-            if (err) return res.status(500).json({ message: err.message });
-            if (!user) return res.status(401).json({ message: info.message });
-            
-            req.logIn(user, (err) => {
-                if (err) return next(err);
+            if (err) return new BaseResponse(status = "error", code = 500, message = err.message);
+            if (!user) return new BaseResponse(status = "fail", code = 401, message = info.message);
 
-                // BaseResponse 클래스는 상태, 코드, 메시지, 데이터를 인자로 받습니다.
-                // return res.json(
-                //     new BaseResponse("Success", 200, 'User logged in successfully', 
-                    //     { 
-                    //         id: user._id, 
-                    //         email: user.userEmail, 
-                    //         name: user.userName 
-                    //     }
-                    // )
-                // );
+            req.logIn(user, (err) => {
+                if (err) return new BaseResponse(status = "error", code = 500, message = err.message);
 
                 return res.json(
-                    new BaseResponse(status="success", code = 200, message = "로그인이 성공했습니다", 
-                        data = { 
-                            id: user._id, 
-                            email: user.userEmail, 
-                            name: user.userName 
+                    new BaseResponse(status = "success", code = 200, message = "로그인이 성공했습니다",
+                        data = {
+                            id: user._id,
+                            email: user.userEmail,
+                            name: user.userName
                         }
                     )
                 )
 
             });
 
-
         })(req, res, next);
 
     } catch (err) {
-        console.log("로그인 처리 과정에서 오류");
-        res.status(500).json({ message: err.message });
+        console.log("로그인 처리 과정에서 오류 발생", err);
+        return res.json(
+            new BaseResponse(status = "error", code = 500, message = err.message)
+        )
+
+
     }
 };
 
@@ -61,12 +54,19 @@ const logout = (req, res) => {
     try {
         req.logout((err) => {
             if (err) {
-                return res.status(500).json({ message: err.message });
+                return res.json(
+                    new BaseResponse(status = "error", code = 500, message = err.message)
+                )
             }
-            res.json({ message: 'User logged out successfully' });
+            return res.json(
+                new BaseResponse(status = "success", code = 200, message = "로그아웃이 성공했습니다")
+            )
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.log("로그아웃 처리 과정에서 오류 발생", err);
+        return res.json(
+            new BaseResponse(status = "error", code = 500, message = err.message)
+        )
     }
 };
 
@@ -76,17 +76,18 @@ const register = async (req, res) => {
     try {
         const { userName, userEmail, password } = req.body;
         if (!userName || !userEmail || !password) {
-            return res.status(400).json({ message: 'userName, userEmail, password are required.' });
+            return res.json(new BaseResponse(status = "fail", code = 400, message = "이름, 이메일, 비밀번호 중 하나라도 입력되지 않았습니다."))
         }
 
         await registerUser({ userName, userEmail, password });
-        res.json({ message: 'User registered successfully' });
+
+        return res.json(new BaseResponse(status = "success", code = 200, message = "회원가입이 완료되었습니다."))
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return res.json(new BaseResponse(status = "error", code = 500, message = err.message))
     }
 };
 
-// 📌 회원탈퇴 (userService의 deleteUser 사용)
+// 📌 회원탈퇴 
 const deleteUser = async (req, res) => {
     try {
         const userId = req.params.id;
@@ -94,12 +95,12 @@ const deleteUser = async (req, res) => {
 
         req.logout((err) => {
             if (err) {
-                return res.status(500).json({ message: err.message });
+                return res.json(new BaseResponse(status = "error", code = 500, message = err.message));
             }
-            res.json({ message: 'User deleted and logged out successfully' });
+            return res.json(new BaseResponse(status = "success", code = 200, message = "회원 탈퇴가 완료되었습니다."));
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return res.json(new BaseResponse(status = "error", code = 500, message = err.message))
     }
 };
 
