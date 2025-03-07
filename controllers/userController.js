@@ -2,9 +2,10 @@ const { ObjectId } = require('mongodb');
 const { getDb } = require('../db');
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
-const passport = require('passport');
+const passport = require('../passport');
 const LocalStrategy = require('passport-local')
 const { findUserByEmail, registerUser, deleteUser: deleteUserService } = require('../services/userService');
+const BaseResponse = require("../utils/BaseResponse");
 
 // 📌 로그인
 const login = async (req, res, next) => {
@@ -22,10 +23,28 @@ const login = async (req, res, next) => {
             
             req.logIn(user, (err) => {
                 if (err) return next(err);
-                return res.json({
-                    message: 'User logged in successfully',
-                    user: { id: user._id, email: user.userEmail, name: user.userName }
-                });
+
+                // BaseResponse 클래스는 상태, 코드, 메시지, 데이터를 인자로 받습니다.
+                // return res.json(
+                //     new BaseResponse("Success", 200, 'User logged in successfully', 
+                    //     { 
+                    //         id: user._id, 
+                    //         email: user.userEmail, 
+                    //         name: user.userName 
+                    //     }
+                    // )
+                // );
+
+                return res.json(
+                    new BaseResponse(status="success", code = 200, message = "로그인이 성공했습니다", 
+                        data = { 
+                            id: user._id, 
+                            email: user.userEmail, 
+                            name: user.userName 
+                        }
+                    )
+                )
+
             });
 
 
@@ -83,36 +102,6 @@ const deleteUser = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
-
-passport.use(new LocalStrategy({ usernameField: 'userEmail', passwordField: 'password' }, async (userEmail, password, cb) => {
-    const db = getDb();
-    let result = await findUserByEmail(userEmail);
-    if (!result) {
-        return cb(null, false, { message: 'Incorrect email.' });
-    }
-    const isMatch = await bcrypt.compare(password, result.password);
-    if (isMatch) {
-        return cb(null, result);
-    } else {
-        return cb(null, false, { message: 'Incorrect password.' });
-    }
-}
-))
-
-passport.serializeUser((user, done) => {
-    process.nextTick(() => {
-        done(null, { id: user._id, email: user.userEmail, name: user.userName });
-    });
-})
-
-passport.deserializeUser(async (user, done) => {
-    const db = getDb();
-    let result = await db.collection('users').findOne({ _id: new ObjectId(user.id) });
-    delete result.password;
-    process.nextTick(() => {
-        done(null, user);
-    });
-})
 
 
 module.exports = { login, logout, register, deleteUser };

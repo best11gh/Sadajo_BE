@@ -2,6 +2,8 @@ const { ObjectId } = require('mongodb');
 const { getDb } = require('../db');
 
 const createMessage = async ({ chatId, senderId, content }) => {
+    console.log("messageService.createMessage 호출됨. content:", content); // 디버깅 로그 추가
+
     const db = getDb();
 
     // 채팅방이 존재하는지 확인
