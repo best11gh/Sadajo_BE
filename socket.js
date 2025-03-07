@@ -6,11 +6,16 @@ const messageService = require('./services/messageService.js');
 
 
 module.exports = (server) => {
-    const io = socketIo(server);
-
+    const io = socketIo(server, {
+        cors: {
+          origin: "http://localhost:3000", // 클라이언트 URL
+          methods: ["GET", "POST"],
+          credentials: true, // 쿠키 전송 허용 (필요한 경우)
+        }
+      });
     io.on('connection', (socket) => {
-        console.log('새 클라이언트 접속:', socket.id);
-
+        console.log('새 클라이언트 접속: ', socket.id);
+        // // 백엔드 고칠 떄는 항상 다시 키기!!!!!!!!!!!!!!!!!!!!!!!!
         // // 채팅방 생성 이벤트
         // socket.on('createChat', async ({ requesterId, accepterId }) => {
         //     try {
@@ -26,26 +31,33 @@ module.exports = (server) => {
         // });
 
         // 채팅방 입장 이벤트
+        socket.onAny((event, ...args) => {
+            console.log(`Received event ${event}:`, args);
+          });
+        
+
         socket.on('joinRoom', ({ chatId, userId }) => {
             socket.join(chatId);
             socket.emit('joinedChat', { chatId }); // 프론트에 참여 성공했다고 알리는 소켓통신
         });
 
         // 메시지 송신 이벤트
-        socket.on('sendMessage', async ({ chatId, senderId, message }) => {
+        socket.on('sendMessage', async ( { chatId, senderId, content } ) => {
             try {
-                // 1. 메시지 저장
-                await messageService.createMessage({ chatId, senderId, message });
+                console.log("Received content:", content);
+        // 1. 메시지 저장
+                await messageService.createMessage({ chatId, senderId, content });
                 // 2. 채팅 데이터들을 json으로 담음
                 const msgData = {
                     chatId,
                     senderId,
-                    message,
+                    content,
                     createdAt: new Date()
                 };
                 // 3. to로 해당 채팅방에만 메시지 emit
                 io.to(chatId).emit('message', msgData);
             } catch (err) {
+                console.log("Received content:", content);
                 socket.emit('error', { message: err.message });
             }
         });
