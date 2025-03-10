@@ -2,9 +2,7 @@ const express = require('express')
 const passport = require('passport');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
-
 const http = require('http');
-
 
 require('dotenv').config();
 const { connectDb } = require('./db');
@@ -13,11 +11,18 @@ const app = express()
 
 const cors = require('cors');
 
-app.use(cors({
-  origin: 'http://localhost:3000',  // 프론트엔드 주소
-  credentials: true,                // 쿠키, 인증 정보 전송 허용
-}));
+const cors = require('cors');
 
+const allowedOrigins = [
+  'http://localhost:3000',   // 로컬 개발 환경
+  // 프론트엔드가 아직 배포되지 않았으므로 다른 것들은 비워두거나 제거
+  // 'https://myapp.com',     // 배포된 프론트엔드 주소 (예시)
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,  // 쿠키, 인증 정보 전송 허용
+}));
 
 // 세션 설정
 app.use(passport.initialize());
@@ -50,11 +55,11 @@ const server = http.createServer(app);
 const initializeSocket = require("./socket");
 initializeSocket(server);
 
-
 // 서버 실행 전에 MongoDB 연결 시도
 connectDb().then(() => {
-  server.listen(8080, () => {
-    console.log('🚀 서버 실행 중: http://localhost:8080');
+  const PORT = process.env.PORT || 8080;  // ✅ Elastic Beanstalk은 process.env.PORT를 할당하므로 변경
+  server.listen(PORT, () => {
+    console.log(`🚀 서버 실행 중: http://localhost:${PORT}`);
   });
 }).catch(err => {
   console.error('❌ 서버 실행 실패:', err);
