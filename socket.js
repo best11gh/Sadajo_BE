@@ -42,25 +42,33 @@ module.exports = (server) => {
         });
 
         // 메시지 송신 이벤트
-        socket.on('sendMessage', async ( { chatId, senderId, content } ) => {
+        socket.on('sendMessage', async (payload) => {
+            console.log("sendMessage payload:", payload);
+            const { chatId, senderId, content } = payload;
             try {
-                console.log("Received content:", content);
-        // 1. 메시지 저장
-                await messageService.createMessage({ chatId, senderId, content });
-                // 2. 채팅 데이터들을 json으로 담음
+                // 실제 생성된 메시지 객체를 반환받습니다.
+                const newMessage = await messageService.createMessage({ chatId, senderId, content });
+                console.log("New message created:", newMessage);
                 const msgData = {
+                    _id: newMessage._id,  // 여기서 _id를 포함합니다.
                     chatId,
                     senderId,
                     content,
-                    createdAt: new Date()
+                    createdAt: newMessage.createdAt || new Date()
                 };
-                // 3. to로 해당 채팅방에만 메시지 emit
                 io.to(chatId).emit('message', msgData);
             } catch (err) {
-                console.log("Received content:", content);
                 socket.emit('error', { message: err.message });
             }
         });
+        
+        // socket.js (서버)
+        socket.on('messagesRead', (data) => {
+            console.log("Received messagesRead from client for chat:", data.chatId);
+
+            io.to(data.chatId).emit('messagesRead', data);
+        });
+  
 
         socket.on('disconnect', () => {
             console.log('클라이언트 연결 종료:', socket.id);
