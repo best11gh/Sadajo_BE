@@ -13,8 +13,8 @@ const cors = require('cors');
 
 const allowedOrigins = [
   'http://localhost:3000',   // 로컬 개발 환경
-  // 프론트엔드가 아직 배포되지 않았으므로 다른 것들은 비워두거나 제거
-  // 'https://myapp.com',     // 배포된 프론트엔드 주소 (예시)
+
+  'https://sadajo.site',     // 배포된 프론트엔드 주소
 ];
 
 app.use(cors({
